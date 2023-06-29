@@ -133,9 +133,11 @@ class Sentence():
         a cell is known to be a mine.
         """
         # returns updated sentence
-        self.cells.remove(cell)
-        self.count -= 1
-        return self
+        try:
+            self.cells.remove(cell)
+            self.count -= 1
+        finally:
+            return self
 
 
     def mark_safe(self, cell):
@@ -144,8 +146,10 @@ class Sentence():
         a cell is known to be safe.
         """
         # returns updated sentence
-        self.cells.remove(cell)
-        return self
+        try:
+            self.cells.remove(cell)
+        finally:
+            return self
 
 
 class MinesweeperAI():
@@ -224,10 +228,14 @@ class MinesweeperAI():
         for knowledge in self.knowledge:
             mines = knowledge.known_mines()
             if mines != None:
-                self.mines.update(mines)
+                mines_copy = mines.copy()
+                for mine in mines_copy:
+                    self.mark_mine(mine)
             safes = knowledge.known_safes()
             if safes != None:
-                self.safes.update(safes)
+                safes_copy = safes.copy()
+                for safe in safes_copy:
+                    self.mark_safe(safe)
         for i in range(len(self.knowledge)):
             for j in range(i, len(self.knowledge)):
                 new_set = self.knowledge[i].cells - self.knowledge[j].cells
@@ -245,10 +253,10 @@ class MinesweeperAI():
                     new_set = self.knowledge[j].cells - self.knowledge[i].cells
                     if len(new_set) < len(self.knowledge[j].cells):
                         new_count = self.knowledge[j].count - self.knowledge[i].count
-                    new_sentence = Sentence(cells=new_set, count=new_count)
-                    self.knowledge.append(new_sentence)
-                    self.knowledge.remove(self.knowledge[i])
-                    self.knowledge.remove(self.knowledge[j])
+                        new_sentence = Sentence(cells=new_set, count=new_count)
+                        self.knowledge.append(new_sentence)
+                        self.knowledge.remove(self.knowledge[i])
+                        self.knowledge.remove(self.knowledge[j])
                 
 
     def make_safe_move(self):

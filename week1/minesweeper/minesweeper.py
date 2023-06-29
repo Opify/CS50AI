@@ -133,10 +133,9 @@ class Sentence():
         a cell is known to be a mine.
         """
         # returns updated sentence
-        if cell in self.cells:
-            self.cells.remove(cell)
-            self.count -= 1
-            return self
+        self.cells.remove(cell)
+        self.count -= 1
+        return self
 
 
     def mark_safe(self, cell):
@@ -145,9 +144,8 @@ class Sentence():
         a cell is known to be safe.
         """
         # returns updated sentence
-        if cell in self.cells:
-            self.cells.remove(cell)
-            return self
+        self.cells.remove(cell)
+        return self
 
 
 class MinesweeperAI():
@@ -236,17 +234,21 @@ class MinesweeperAI():
                 # if len(new_set) != self.knowledge[i], it means
                 # a new subset was found and so we add it to the knowledge
                 # and remove the two sentences
-                if len(new_set) != len(self.knowledge[i].cells):
+                if len(new_set) < len(self.knowledge[i].cells):
                     new_count = self.knowledge[i].count - self.knowledge[j].count
                     new_sentence = Sentence(cells=new_set, count=new_count)
                     self.knowledge.append(new_sentence)
+                    self.knowledge.remove(self.knowledge[i])
+                    self.knowledge.remove(self.knowledge[j])
                 # try self.knowledge[j].cells - self.knowledge[i].cells
                 else:
                     new_set = self.knowledge[j].cells - self.knowledge[i].cells
-                    if len(new_set) != len(self.knowledge[j].cells):
+                    if len(new_set) < len(self.knowledge[j].cells):
                         new_count = self.knowledge[j].count - self.knowledge[i].count
                     new_sentence = Sentence(cells=new_set, count=new_count)
                     self.knowledge.append(new_sentence)
+                    self.knowledge.remove(self.knowledge[i])
+                    self.knowledge.remove(self.knowledge[j])
                 
 
     def make_safe_move(self):
@@ -270,8 +272,12 @@ class MinesweeperAI():
             1) have not already been chosen, and
             2) are not known to be mines
         """
-        for i in range(self.height):
-            for j in range(self.width):
-                if (i, j) not in self.mines and (i, j) not in self.moves_made:
+        attempts = 0
+        while attempts < 20:
+            i = random.randrange(self.height)
+            j = random.randrange(self.width)
+            attempts += 1
+            if (i, j) not in self.mines:
+                if (i, j) not in self.moves_made:
                     return (i, j)
         return None

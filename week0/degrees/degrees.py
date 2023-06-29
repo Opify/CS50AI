@@ -97,16 +97,6 @@ def shortest_path(source, target):
     initial = Node(state=source, parent=None, action=None)
     frontier = QueueFrontier()
     frontier.add(initial)
-    # generate first children
-    """
-    for person in stars:
-        # check if first round of stars is the target
-        if person[1] == target:
-            actions = [person[0], person[1]]
-            return actions
-        first_node = Node(state=person[1], parent=initial, action=(person[0], person[1]))
-        frontier.add(first_node)
-    """
     # run through all nodes in frontier through neighbors_for_person()
     while not frontier.empty():
         node = frontier.remove()

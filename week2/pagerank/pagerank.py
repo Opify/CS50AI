@@ -98,7 +98,7 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    # for 1st iteration, run set up model
+    # for 1st iteration, set up model
     page = random.choice(list(corpus))
     result = dict()
     for entry in corpus:
@@ -109,7 +109,7 @@ def sample_pagerank(corpus, damping_factor, n):
     for entry in model:
         probabilites.append(model[entry])
     # for subsequent iterations, use page selected from previous
-    # transition model
+    # transition model, then update transition model
     for i in range(n - 1):
         page = numpy.random.choice(list(corpus), p=probabilites)
         result[page] += 1
@@ -143,12 +143,17 @@ def iterate_pagerank(corpus, damping_factor):
         for entry in corpus:
             old = result[entry]
             sum = 0
+            # check if other pages link to selected page
             for other in corpus:
                 if entry in corpus[other] and entry != other:
+                    # using given pagerank equation
                     pr = result[other]
                     numlinks = len(corpus[other])
                     sum += (pr / numlinks)
             new = ((1 - DAMPING) / N) + (DAMPING * sum)
+            # if values fluctuate by 0.001 or less, flag as constant
+            # if all pagerank values are constant, constant = N and
+            # so the loop will stop
             if abs(new - old) <= 0.001:
                 constant += 1
             result[entry] = new

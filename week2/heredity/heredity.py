@@ -139,9 +139,59 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
-    raise NotImplementedError
+    def has_genes(person, one_gene, two_genes):
+        if person in one_gene:
+            return 1
+        elif person in two_genes:
+            return 2
+        else:
+            return 0
 
+    def inheritance(person, one_gene, two_genes):
+        if person in one_gene:
+            return 0.5
+        elif person in two_genes:
+            return 1 - PROBS["mutation"]
+        else:
+            return 0 + PROBS["mutation"]
+    
+    result = 1
+    for person in people.items():
+        # main dict is in index 1 of the tuple from items()
+        # check if person has trait
+        if person[1]["name"] in have_trait:
+            has_trait = True
+        else:
+            has_trait = False
+        # check if person has 0, 1 or 2 genes
+        gene = has_genes(person[1]["name"], one_gene, two_genes)
+        # if person has no parents, use unconditional probability of
+        # having genes
+        if person[1]["mother"] is None and person[1]["father"] is None:
+            result *= PROBS["gene"][gene] * PROBS["trait"][gene][has_trait]
+        # if person has parents, give (100 - mutation)% chance of getting 
+        # gene from a parent if they have 2 genes, (50 -  mutation)% 
+        # chance of getting gene from a parent if they have 1 gene and
+        # mutatuon% chance of getting gene from a parent if they have 
+        # no genes
+        else:
+            father = person[1]["father"]
+            mother = person[1]["mother"]
+            # get likelihood of getting gene from parents
+            father_gene = inheritance(father, one_gene, two_genes)
+            mother_gene = inheritance(mother, one_gene, two_genes)
+            # P(genes from both father and mother) * P(has_trait)
+            if gene == 2:
+                result *= father_gene * mother_gene * PROBS["trait"][gene][has_trait]
+            #P(gene from father or mother) * P(has_trait)
+            elif gene == 1:
+                result *= ((father_gene * (1 - mother_gene)) + ((1 - father_gene) * mother_gene)) * PROBS["trait"][gene][has_trait]
+            # P(no gene from father and mother) * P(has_trait)
+            else:
+                result *= (1 - father_gene) * (1 - mother_gene) * PROBS["trait"][gene][has_trait]
+    return result
 
+            
 def update(probabilities, one_gene, two_genes, have_trait, p):
     """
     Add to `probabilities` a new joint probability `p`.
@@ -149,7 +199,26 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
     Which value for each distribution is updated depends on whether
     the person is in `have_gene` and `have_trait`, respectively.
     """
-    raise NotImplementedError
+    def has_genes(person, one_gene, two_genes):
+        if person in one_gene:
+            return 1
+        elif person in two_genes:
+            return 2
+        else:
+            return 0
+
+    def has_trait(person, have_trait):
+        if person in have_trait:
+            return True
+        else:
+            return False
+
+    for person in probabilities.items():
+        # index 0 is where the name resides
+        gene = has_genes(person[0], one_gene, two_genes)
+        trait = has_trait(person[0], have_trait)
+        probabilities[person[0]]["gene"][gene] += p
+        probabilities[person[0]]["trait"][trait] += p
 
 
 def normalize(probabilities):
@@ -157,7 +226,20 @@ def normalize(probabilities):
     Update `probabilities` such that each probability distribution
     is normalized (i.e., sums to 1, with relative proportions the same).
     """
-    raise NotImplementedError
+    # since all probabilities for each person have a similar base, 
+    # we can simply use the first person's gene and trait probability
+    # to rebase all records
+    gene_base = 0
+    trait_base = 0
+    for entry in probabilities.items():
+        gene_base += entry[1]["gene"][2] + entry[1]["gene"][1] + entry[1]["gene"][0]
+        trait_base += entry[1]["trait"][True] + entry[1]["trait"][False]
+        break
+    for key in probabilities:
+        for num in probabilities[key]["gene"]:
+            probabilities[key]["gene"][num] /= gene_base
+        for bool in probabilities[key]["trait"]:
+            probabilities[key]["trait"][bool] /= trait_base
 
 
 if __name__ == "__main__":

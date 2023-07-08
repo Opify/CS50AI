@@ -238,25 +238,26 @@ class MinesweeperAI():
                     self.mark_safe(safe)
         for i in range(len(self.knowledge)):
             for j in range(i, len(self.knowledge)):
-                new_set = self.knowledge[i].cells - self.knowledge[j].cells
-                # if len(new_set) != self.knowledge[i], it means
-                # a new subset was found and so we add it to the knowledge
-                # and remove the two sentences
-                if len(new_set) < len(self.knowledge[i].cells):
-                    new_count = self.knowledge[i].count - self.knowledge[j].count
-                    new_sentence = Sentence(cells=new_set, count=new_count)
-                    self.knowledge.append(new_sentence)
-                    self.knowledge.remove(self.knowledge[i])
-                    self.knowledge.remove(self.knowledge[j])
-                # try self.knowledge[j].cells - self.knowledge[i].cells
-                else:
-                    new_set = self.knowledge[j].cells - self.knowledge[i].cells
-                    if len(new_set) < len(self.knowledge[j].cells):
-                        new_count = self.knowledge[j].count - self.knowledge[i].count
+                if j != i:
+                    new_set = self.knowledge[i].cells - self.knowledge[j].cells
+                    # if len(new_set) != self.knowledge[i], it means
+                    # a new subset was found and so we add it to the knowledge
+                    # and remove the two sentences
+                    if len(new_set) < len(self.knowledge[i].cells):
+                        new_count = self.knowledge[i].count - self.knowledge[j].count
                         new_sentence = Sentence(cells=new_set, count=new_count)
                         self.knowledge.append(new_sentence)
                         self.knowledge.remove(self.knowledge[i])
                         self.knowledge.remove(self.knowledge[j])
+                    # try self.knowledge[j].cells - self.knowledge[i].cells
+                    else:
+                        new_set = self.knowledge[j].cells - self.knowledge[i].cells
+                        if len(new_set) < len(self.knowledge[j].cells):
+                            new_count = self.knowledge[j].count - self.knowledge[i].count
+                            new_sentence = Sentence(cells=new_set, count=new_count)
+                            self.knowledge.append(new_sentence)
+                            self.knowledge.remove(self.knowledge[i])
+                            self.knowledge.remove(self.knowledge[j])
                 
 
     def make_safe_move(self):

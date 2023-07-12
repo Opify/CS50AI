@@ -101,7 +101,11 @@ class NimAI():
         Return the Q-value for the state `state` and the action `action`.
         If no Q-value exists yet in `self.q`, return 0.
         """
-        raise NotImplementedError
+        try:
+            q = self.q[(tuple(state), action)]
+        except KeyError:
+            q = 0
+        return q
 
     def update_q_value(self, state, action, old_q, reward, future_rewards):
         """
@@ -118,7 +122,8 @@ class NimAI():
         `alpha` is the learning rate, and `new value estimate`
         is the sum of the current reward and estimated future rewards.
         """
-        raise NotImplementedError
+        new_q = old_q + (self.alpha * (reward + future_rewards - old_q))
+        self.q.update({(tuple(state), action): new_q})
 
     def best_future_reward(self, state):
         """
@@ -130,7 +135,13 @@ class NimAI():
         Q-value in `self.q`. If there are no available actions in
         `state`, return 0.
         """
-        raise NotImplementedError
+        score = 0
+        for pair in self.q:
+            # check if (state, action) key has state
+            if pair[0] == tuple(state):
+                if self.q[pair] > score:
+                    score = self.q[pair]
+        return score
 
     def choose_action(self, state, epsilon=True):
         """
@@ -147,7 +158,31 @@ class NimAI():
         If multiple actions have the same Q-value, any of those
         options is an acceptable return value.
         """
-        raise NotImplementedError
+        rand = random.random()
+        choices = []
+        for pair in self.q:
+            # check if (state, action) key has state
+            # if it has, append tuple ((state, action), Q-Value)
+            if pair[0] == state:
+                choices.append((pair, self.q[pair]))
+        # perform greedy action
+        if len(choices) == 0:
+            amount = 0
+            # make random appropriate action
+            while (amount < 1):
+                pile = random.choice(range(len(state)))
+                if state[pile] != 0:
+                    amount = max(1, math.floor(random.random() * state[pile]))
+            return (pile, amount)
+        else:
+            if rand < self.epsilon:
+                choices.sort(key=lambda tup: tup[1], reverse=True)
+                # return action with highest Q-Value
+                return choices[0][0][1]
+            else:
+                decision = random.choice(choices)
+                return decision[0][1]
+
 
 
 def train(n):

@@ -163,9 +163,9 @@ class NimAI():
         for pair in self.q:
             # check if (state, action) key has state
             # if it has, append tuple ((state, action), Q-Value)
-            if pair[0] == state:
+            if pair[0] == tuple(state):
                 choices.append((pair, self.q[pair]))
-        # perform greedy action
+        # perform random action
         if len(choices) == 0:
             amount = 0
             # make random appropriate action
@@ -175,11 +175,13 @@ class NimAI():
                     amount = max(1, math.floor(random.random() * state[pile]))
             return (pile, amount)
         else:
-            if rand < self.epsilon:
+            # perform greedy action
+            if rand > self.epsilon:
                 choices.sort(key=lambda tup: tup[1], reverse=True)
                 # return action with highest Q-Value
                 return choices[0][0][1]
             else:
+                # perform random action
                 decision = random.choice(choices)
                 return decision[0][1]
 

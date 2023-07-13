@@ -182,8 +182,13 @@ class NimAI():
                 return choices[0][0][1]
             else:
                 # perform random action
-                decision = random.choice(choices)
-                return decision[0][1]
+                amount = 0
+                # make random appropriate action
+                while (amount < 1):
+                    pile = random.choice(range(len(state)))
+                    if state[pile] != 0:
+                        amount = max(1, math.floor(random.random() * state[pile]))
+                return (pile, amount)
 
 
 

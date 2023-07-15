@@ -87,10 +87,14 @@ def get_model():
     model = tf.keras.models.Sequential([
         # Conv2D layer
         tf.keras.layers.Conv2D(
-        32, (3, 3), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)
+        24, (3, 3), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)
+        ),
+        # Conv2D layer
+        tf.keras.layers.Conv2D(
+        24, (4, 4), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)
         ),
         # Pooling layer
-        tf.keras.layers.MaxPooling2D(pool_size=(2,2)),
+        tf.keras.layers.MaxPooling2D(pool_size=(2,2)),        
         # Flatten inputs
         tf.keras.layers.Flatten(),
         # Main neural network

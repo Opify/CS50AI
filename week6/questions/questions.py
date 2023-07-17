@@ -72,7 +72,7 @@ def tokenize(document):
         if char not in string.punctuation and nltk.corpus.stopwords.words("english"):
             interim.append(char.lower())
     # remove the first entry which is the url
-    result = nltk.tokenize.word_tokenize(''.join(interim))[1:]
+    result = nltk.tokenize.word_tokenize(''.join(interim))
     return result
 
 def compute_idfs(documents):
@@ -128,13 +128,10 @@ def top_files(query, files, idfs, n):
     interim = []
     for key in tf_idf:
         interim.append((key, tf_idf[key]))
-    # list returned MUST be of length n
-    if len(interim) != n:
-        for file in files:
-            if file not in tf_idf:
-                interim.append((file, 0))
     # sort by tf-idf score
     interim.sort(key=lambda tup: tup[1], reverse=True)
+    if len(interim) != n:
+        interim = interim[:n]
     result = []
     for combo in interim:
         result.append(combo[0])
@@ -170,7 +167,7 @@ def top_sentences(query, sentences, idfs, n):
     interim = []
     for key in idf_values:
         length = len(sentences[key])
-        interim.append((key, idf_values[key], length / matches[key]))
+        interim.append((key, idf_values[key], matches[key] / length))
     interim.sort(key=lambda tup: (tup[1], tup[2]), reverse=True)
     result = []
     for i in range(n):

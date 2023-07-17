@@ -1,5 +1,8 @@
 import nltk
 import sys
+import os
+import string
+import numpy
 
 FILE_MATCHES = 1
 SENTENCE_MATCHES = 1
@@ -48,7 +51,12 @@ def load_files(directory):
     Given a directory name, return a dictionary mapping the filename of each
     `.txt` file inside that directory to the file's contents as a string.
     """
-    raise NotImplementedError
+    result = dict()
+    files = os.listdir(directory)
+    for file in files:
+        with open(os.path.join(directory, file), 'r', encoding='utf8') as f:
+            result.update({file: f.read()})
+    return result
 
 
 def tokenize(document):
@@ -59,8 +67,13 @@ def tokenize(document):
     Process document by coverting all words to lowercase, and removing any
     punctuation or English stopwords.
     """
-    raise NotImplementedError
-
+    interim = []
+    for char in document:
+        if char not in string.punctuation and nltk.corpus.stopwords.words("english"):
+            interim.append(char.lower())
+    # remove the first entry which is the url
+    result = nltk.tokenize.word_tokenize(''.join(interim))[1:]
+    return result
 
 def compute_idfs(documents):
     """
@@ -70,7 +83,22 @@ def compute_idfs(documents):
     Any word that appears in at least one of the documents should be in the
     resulting dictionary.
     """
-    raise NotImplementedError
+    document_count = dict()
+    # calculate total number of documents through len()
+    total_documents = len(documents)
+    for document in documents:
+        for word in documents[document]:
+            # use add filename to document_count to
+            # calculate number of documents word is in through
+            # len()
+            if word not in document_count:
+                document_count[word] = {document}
+            else:
+                document_count[word].add(document)
+    idf = dict()
+    for word in document_count:
+        idf.update({word: numpy.log(total_documents / len(document_count[word]))})
+    return idf
 
 
 def top_files(query, files, idfs, n):
@@ -80,7 +108,37 @@ def top_files(query, files, idfs, n):
     to their IDF values), return a list of the filenames of the the `n` top
     files that match the query, ranked according to tf-idf.
     """
-    raise NotImplementedError
+    words = []
+    # remove stopwords in query
+    for word in query:
+        if word not in nltk.corpus.stopwords.words('english'):
+            words.append(word)
+    # dict that handles tf_idf values
+    tf_idf = dict()
+    for keyword in words:
+        for file in files:
+            count = 0
+            for word in files[file]:
+                if word == keyword:
+                    count += 1
+            if file not in tf_idf:
+                tf_idf[file] = count * idfs[keyword]
+            else:
+                tf_idf[file] += count * idfs[keyword]
+    interim = []
+    for key in tf_idf:
+        interim.append((key, tf_idf[key]))
+    # list returned MUST be of length n
+    if len(interim) != n:
+        for file in files:
+            if file not in tf_idf:
+                interim.append((file, 0))
+    # sort by tf-idf score
+    interim.sort(key=lambda tup: tup[1], reverse=True)
+    result = []
+    for combo in interim:
+        result.append(combo[0])
+    return result
 
 
 def top_sentences(query, sentences, idfs, n):
@@ -91,7 +149,33 @@ def top_sentences(query, sentences, idfs, n):
     the query, ranked according to idf. If there are ties, preference should
     be given to sentences that have a higher query term density.
     """
-    raise NotImplementedError
+    words = []
+    idf_values = dict()
+    matches = dict()
+    # remove stopwords in query
+    for word in query:
+        if word not in nltk.corpus.stopwords.words('english'):
+            words.append(word)
+    for keyword in words:
+        for sentence in sentences:
+            if keyword in sentences[sentence]:
+                if sentence not in idf_values:
+                    idf_values[sentence] = idfs[keyword]
+                else:
+                    idf_values[sentence] += idfs[keyword]
+                if sentence not in matches:
+                    matches[sentence] = 1
+                else:
+                    matches[sentence] += 1
+    interim = []
+    for key in idf_values:
+        length = len(sentences[key])
+        interim.append((key, idf_values[key], length / matches[key]))
+    interim.sort(key=lambda tup: (tup[1], tup[2]), reverse=True)
+    result = []
+    for i in range(n):
+        result.append(interim[i][0])
+    return result
 
 
 if __name__ == "__main__":

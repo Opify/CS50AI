@@ -71,7 +71,6 @@ def tokenize(document):
     for char in document:
         if char not in string.punctuation and nltk.corpus.stopwords.words("english"):
             interim.append(char.lower())
-    # remove the first entry which is the url
     result = nltk.tokenize.word_tokenize(''.join(interim))
     return result
 
@@ -117,6 +116,7 @@ def top_files(query, files, idfs, n):
     tf_idf = dict()
     for keyword in words:
         for file in files:
+            # for some reason, count() wasn't working
             count = 0
             for word in files[file]:
                 if word == keyword:
@@ -130,6 +130,7 @@ def top_files(query, files, idfs, n):
         interim.append((key, tf_idf[key]))
     # sort by tf-idf score
     interim.sort(key=lambda tup: tup[1], reverse=True)
+    # assumes len(interm) always >= n
     if len(interim) != n:
         interim = interim[:n]
     result = []
@@ -148,6 +149,7 @@ def top_sentences(query, sentences, idfs, n):
     """
     words = []
     idf_values = dict()
+    # to calculate query term density
     matches = dict()
     # remove stopwords in query
     for word in query:
@@ -167,6 +169,7 @@ def top_sentences(query, sentences, idfs, n):
     interim = []
     for key in idf_values:
         length = len(sentences[key])
+        # sorts by idf values, then query term density
         interim.append((key, idf_values[key], matches[key] / length))
     interim.sort(key=lambda tup: (tup[1], tup[2]), reverse=True)
     result = []
